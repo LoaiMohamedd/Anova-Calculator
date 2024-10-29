@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ANOVA Calculator with t-Test Chart</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jstat/1.9.4/jstat.min.js"></script>
+
+</head>
+<body>
+
+  <h1>ANOVA Calculator</h1>
+
+  <!-- Input Container -->
+  <div id="inputContainer">
+    <h2>Enter Group Data</h2>
+    <p>Enter each group's data in a comma-separated format. Each group should be on a new line.</p>
+    <textarea id="dataInput" placeholder="Example:&#10;11, 17, 16, 14, 15&#10;12, 10, 15, 19, 11&#10;23, 20, 28, 17&#10;27, 33, 22, 26, 28"></textarea>
+
+    <h2>Enter Confidence Interval</h2>
+    <!-- <p>Enter the t-value for the desired confidence level (e.g., 2.262 for 95% confidence).</p> -->
+    <input type="number" id="tValueInput" placeholder="Enter t-value" step="0.001">
+
+    <button onclick="calculateANOVA()">Calculate ANOVA</button>
+  </div>
+
+  <!-- Output Container -->
+  <div id="outputContainer">
+    <h2>Results</h2>
+    <pre id="output"></pre>
+  </div>
+
+  <!-- Chart Container -->
+  <div id="chartContainer">
+    <h2>T-Test Graph</h2>
+    <canvas id="tChart" width="400" height="200"></canvas>
+  </div>
+
+  <script src="js/main.js"></script>
+</body>
+</html>
