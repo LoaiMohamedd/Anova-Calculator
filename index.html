@@ -1,46 +1,63 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ANOVA Calculator with Confidence Intervals</title>
-  <link rel="stylesheet" href="style.css">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jstat/1.9.4/jstat.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jstat@latest/dist/jstat.min.js"></script>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ANOVA Calculator with Confidence Intervals</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jstat/1.9.4/jstat.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jstat@latest/dist/jstat.min.js"></script>
+  </head>
+  <body>
+    <h1>ANOVA Calculator</h1>
 
-</head>
-<body>
+    <div id="inputContainer">
+      <h2>Enter Group Data</h2>
+      <p>
+        Enter each group's data in a comma-separated format. Each group should
+        be on a new line.
+      </p>
+      <textarea
+        id="dataInput"
+        placeholder="Example:&#10;11, 17, 16, 14, 15&#10;12, 10, 15, 19, 11&#10;23, 20, 28, 17&#10;27, 33, 22, 26, 28"
+      ></textarea>
 
-  <h1>ANOVA Calculator</h1>
+      <h2>Enter Confidence Interval</h2>
+      <label for="tValueInput"> <h3 class="mb-0">t-value:</h3></label>
+      <input
+        type="number"
+        id="tValueInput"
+        placeholder="Enter t-value"
+        step="0.001"
+      />
+      <label for="qValueInput"> <h3 class="mb-0">q-value:</h3></label>
+      <input
+        type="number"
+        id="qValueInput"
+        placeholder="Enter q-value"
+        step="0.001"
+      />
 
-  <!-- Input Container -->
-  <div id="inputContainer">
-    <h2>Enter Group Data</h2>
-    <p>Enter each group's data in a comma-separated format. Each group should be on a new line.</p>
-    <textarea  id="dataInput" placeholder="Example:&#10;11, 17, 16, 14, 15&#10;12, 10, 15, 19, 11&#10;23, 20, 28, 17&#10;27, 33, 22, 26, 28"></textarea>
+      <div class="grid-container">
+        <button onclick="calculateANOVA()">Calculate ANOVA</button>
+        <button onclick="calculateTukey()">Calculate Tukey</button>
+        <button onclick="calculateScheffe()">Calculate Scheffe</button>
+        <button onclick="calculateBonferroni()">Calculate Bonferroni</button>
+      </div>
+    </div>
 
-    <h2>Enter Confidence Interval</h2>
-    <label for="tValueInput"> <h3 class="mb-0">t-value:</h3></label>
-    <input type="number" id="tValueInput" placeholder="Enter t-value" step="0.001">
-    <label for="qValueInput"> <h3 class="mb-0">q-value:</h3></label>
-    <input type="number" id="qValueInput" placeholder="Enter q-value" step="0.001">
+    <div id="outputContainer">
+      <h2>Results</h2>
+      <pre id="output"></pre>
+    </div>
 
-    <button onclick="calculateANOVA()">Calculate ANOVA</button>
-  </div>
+    <!-- Graph Container -->
+    <div id="chartContainer">
+      <h2>ANOVA Results Graph</h2>
+      <canvas id="intervalChart" width="400" height="200"></canvas>
+    </div>
 
-  <!-- Output Container -->
-  <div id="outputContainer">
-    <h2>Results</h2>
-    <pre id="output"></pre>
-  </div>
-
-  <!-- Graph Container -->
-  <div id="chartContainer">
-    <h2>ANOVA Results Graph</h2>
-    <canvas id="intervalChart" width="400" height="200"></canvas>
-  </div>
-
-  <script src="js/main.js"></script>
-</body>
+    <script src="js/main.js"></script>
+  </body>
 </html>

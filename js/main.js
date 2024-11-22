@@ -1,68 +1,212 @@
-// Function to calculate Tukey
-function calculateTukey(groups, qValue, MSE) {
+function calculateTukey() {
+  calculateANOVA();
+   `\n\n\n`;
+  const dataInput = document.getElementById("dataInput").value.trim();
+  const groups = dataInput
+    .split("\n")
+    .map((line) => line.split(",").map(Number));
+
+  const alpha = 0.05; // Significance level
+  const MSE = parseFloat(document.getElementById("tValueInput").value); // Mean Square Error (MSE)
+  const n = parseInt(document.getElementById("qValueInput").value); // Sample size of each group (assuming equal sizes)
+
+  if (groups.some((group) => group.some(isNaN)) || isNaN(MSE) || isNaN(n)) {
+    document.getElementById("output").textContent =
+      "Invalid input. Please enter valid numbers for the data, MSE, and sample size.";
+    return;
+  }
+
+  const groupMeans = groups.map(
+    (group) => group.reduce((sum, val) => sum + val, 0) / group.length
+  );
+  const totalGroups = groups.length;
+
+  // Degrees of freedom for error term (dfW)
+  const dfW = groups.flat().length - totalGroups;
+
+  // Placeholder for critical q-value based on the degrees of freedom and number of groups
+  // This value can be retrieved from statistical tables or approximated
+  const criticalQ = parseFloat(document.getElementById("qValueInput").value); // Example placeholder value for a 5% significance level
+
+  const results = [];
+
+  // Perform pairwise comparisons between groups
+  for (let i = 0; i < totalGroups; i++) {
+    for (let j = i + 1; j < totalGroups; j++) {
+      const mean1 = groupMeans[i];
+      const mean2 = groupMeans[j];
+
+      // Calculate the Tukey HSD statistic
+      const HSD = Math.abs(mean1 - mean2) / Math.sqrt(MSE / n);
+
+      // Determine if the difference is significant
+      const significant = HSD > criticalQ;
+
+      // Store results for display
+      results.push({
+        group1: i + 1, // Group numbers starting from 1 for display
+        group2: j + 1,
+        HSD: HSD.toFixed(4),
+        criticalQ: criticalQ.toFixed(4),
+        significant: significant ? "Yes" : "No", // Display 'Yes' or 'No'
+      });
+    }
+  }
+
+  // Output results
+  let outputText = `Tukey's HSD Procedure Results (Critical q-value = ${criticalQ.toFixed(
+    4
+  )}):\n\n`;
+  results.forEach((result) => {
+    outputText += `Group ${result.group1} vs Group ${result.group2}: HSD = ${result.HSD}, Critical q = ${result.criticalQ}, Significant = ${result.significant}\n`;
+  });
+
+  document.getElementById("output").textContent += outputText;
+}
+
+// Function to calculate Bonferroni Procedure
+
+function calculateBonferroni() {
+  calculateANOVA();
+  const dataInput = document.getElementById("dataInput").value.trim();
+  const groups = dataInput
+    .split("\n")
+    .map((line) => line.split(",").map(Number));
+  const alpha = 0.05; // Original significance level
+  const MSE = parseFloat(document.getElementById("tValueInput").value); // Mean Square Error (MSE)
+
+  if (groups.some((group) => group.some(isNaN)) || isNaN(MSE)) {
+    document.getElementById("output").textContent =
+      "Invalid input. Please enter valid numbers for the data and MSE.";
+    return;
+  }
+
+  const groupMeans = groups.map(
+    (group) => group.reduce((sum, val) => sum + val, 0) / group.length
+  );
+  const groupSizes = groups.map((group) => group.length);
+  const totalGroups = groups.length;
+
+  // Total number of pairwise comparisons (nC2)
+  const numComparisons = (totalGroups * (totalGroups - 1)) / 2;
+
+  // Adjusted alpha for Bonferroni correction
+  const adjustedAlpha = alpha / numComparisons;
+
+  const results = [];
+
+  // Perform pairwise comparisons between groups
+  for (let i = 0; i < totalGroups; i++) {
+    for (let j = i + 1; j < totalGroups; j++) {
+      const mean1 = groupMeans[i];
+      const mean2 = groupMeans[j];
+      const size1 = groupSizes[i];
+      const size2 = groupSizes[j];
+
+      // Calculate the standard error (SE)
+      const SE = Math.sqrt(MSE * (1 / size1 + 1 / size2));
+
+      // Calculate the t-statistic
+      const t = Math.abs(mean1 - mean2) / SE;
+
+      // Get the degrees of freedom for the error term (dfW)
+      const dfW = groups.flat().length - totalGroups;
+
+      // Critical t-value based on the adjusted alpha
+      const criticalT = jStat.studentt.inv(1 - adjustedAlpha / 2, dfW); // Two-tailed test
+
+      // Determine if the difference is significant
+      const significant = t > criticalT;
+
+      results.push({
+        group1: i + 1, // Group numbers start from 1 for display
+        group2: j + 1,
+        t: t.toFixed(4),
+        criticalT: criticalT.toFixed(4),
+        significant: significant,
+      });
+    }
+  }
+
+  // Output results
+  let outputText = `Bonferroni Procedure Results (Adjusted alpha = ${adjustedAlpha.toFixed(
+    4
+  )}):\n`;
+  results.forEach((result) => {
+    outputText += `Group ${result.group1} vs Group ${result.group2}: t = ${
+      result.t
+    }, Critical t = ${result.criticalT}, Significant = ${
+      result.significant ? "Yes" : "No"
+    }\n`;
+  });
+
+  document.getElementById("output").textContent += outputText;
+}
+
+//  Scheffe
+// Function to calculate Scheffe's procedure
+function calculateScheffe() {
+  calculateANOVA();
+  const dataInput = document.getElementById("dataInput").value.trim();
+  const groups = dataInput
+    .split("\n")
+    .map((line) => line.split(",").map(Number));
+  const MSE = parseFloat(document.getElementById("tValueInput").value); // Assume MSE is provided
+  const alpha = 0.05; // Significance level (can be adjusted)
+
+  if (groups.some((group) => group.some(isNaN)) || isNaN(MSE)) {
+    document.getElementById("output").textContent =
+      "Invalid input. Please enter valid numbers for the data and MSE.";
+    return;
+  }
+
   const groupMeans = groups.map(
     (group) => group.reduce((sum, val) => sum + val, 0) / group.length
   );
   const groupSizes = groups.map((group) => group.length);
   const results = [];
 
-  for (let i = 0; i < groupMeans.length; i++) {
-    for (let j = i + 1; j < groupMeans.length; j++) {
-      const meanDiff = Math.abs(groupMeans[i] - groupMeans[j]);
-      const SE = Math.sqrt(MSE * (1 / groupSizes[i] + 1 / groupSizes[j]));
-      const criticalValue = qValue * SE;
-      const significant = meanDiff > criticalValue;
+  // Perform pairwise comparisons between groups
+  for (let i = 0; i < groups.length; i++) {
+    for (let j = i + 1; j < groups.length; j++) {
+      const mean1 = groupMeans[i];
+      const mean2 = groupMeans[j];
+      const size1 = groupSizes[i];
+      const size2 = groupSizes[j];
+
+      
+      const F = Math.pow(mean1 - mean2, 2) / (MSE * (1 / size1 + 1 / size2));
+
+      
+      const dfBetween = groups.length - 1; 
+      const dfError = groups.flat().length - groups.length; 
+      const criticalValue = jStat.centralF.inv(1 - alpha, dfBetween, dfError); 
+
+      
+      const significant = F > criticalValue;
 
       results.push({
         group1: i + 1,
         group2: j + 1,
-        meanDiff: meanDiff.toFixed(3),
-        criticalValue: criticalValue.toFixed(3),
-        significant,
-      });
-    }
-  }
-  return results;
-}
-
-
-// Function to calculate Scheffé's procedure
-function calculateScheffe(groups, MSE, alpha = 0.05) {
-  const groupMeans = groups.map(
-    (group) => group.reduce((sum, val) => sum + val, 0) / group.length
-  );
-  const groupSizes = groups.map((group) => group.length);
-
-  const dfB = groups.length - 1; // Between-group degrees of freedom
-  const dfW = groups.reduce((sum, group) => sum + group.length, 0) - groups.length; // Within-group degrees of freedom
-
-  const criticalValue = jStat.centralF.inv(1 - alpha, dfB, dfW); // F-distribution critical value
-
-  const results = [];
-
-  // Perform pairwise comparison for all group pairs
-  for (let i = 0; i < groupMeans.length; i++) {
-    for (let j = i + 1; j < groupMeans.length; j++) {
-      const meanDiff = Math.abs(groupMeans[i] - groupMeans[j]);
-      const SE = Math.sqrt(MSE * (1 / groupSizes[i] + 1 / groupSizes[j]));
-      const Fscheffe = Math.pow(meanDiff, 2) / (MSE * (1 / groupSizes[i] + 1 / groupSizes[j]));
-
-      const significant = Fscheffe > criticalValue;
-
-      results.push({
-        group1: i + 1,
-        group2: j + 1,
-        meanDiff: meanDiff.toFixed(3),
-        Fscheffe: Fscheffe.toFixed(3),
-        criticalValue: criticalValue.toFixed(3),
-        significant,
+        F: F.toFixed(4),
+        criticalValue: criticalValue.toFixed(4),
+        significant: significant,
       });
     }
   }
 
-  return results;
-}
+  // Output results
+  let outputText = "Scheffe's Procedure Results:\n";
+  results.forEach((result) => {
+    outputText += `Group ${result.group1} vs Group ${result.group2}: F = ${
+      result.F
+    }, Critical Value = ${result.criticalValue}, Significant = ${
+      result.significant ? "Yes" : "No"
+    }\n`;
+  });
 
+  document.getElementById("output").textContent += outputText;
+}
 
 function calculateANOVA() {
   const dataInput = document.getElementById("dataInput").value.trim();
@@ -119,7 +263,7 @@ function calculateANOVA() {
   outputText += `MSTR: ${MSTR.toFixed(3)}\n`;
   outputText += `MSE: ${MSE.toFixed(3)}\n`;
   outputText += `F-Statistic: ${F.toFixed(3)}\n\n`;
-  
+
   // Calculate Confidence Intervals for each group
   const marginsOfError = [];
   const lowerCI = [];
@@ -132,7 +276,7 @@ function calculateANOVA() {
     outputText += `Group ${i + 1}: Mean = ${groupMeans[i].toFixed(3)}\n`;
   }
 
-  // Calculate pairwise confidence intervals for group comparisons
+  // Calculate pairwise confidence intervals
   outputText += `\nPairwise Confidence Intervals (q-value = ${qValue}):\n`;
   const pairwiseCI = [];
   for (let i = 0; i < groups.length; i++) {
@@ -148,46 +292,19 @@ function calculateANOVA() {
       });
       outputText += `Pair ${i + 1}-${j + 1}: CI = [${lower.toFixed(
         3
-      )}, ${upper.toFixed(3)}]\n`;
+      )}, ${upper.toFixed(3)}]\n `;
     }
   }
-
-
-
-
-  // tukey call 
-  const tukeyResults = calculateTukey(groups, qValue, MSE);
-
-  // Display Tukey results
-  outputText += `\nTukey's HSD Results (q-value = ${qValue}):\n`;
-  tukeyResults.forEach((result) => {
-    outputText += `Group ${result.group1} vs Group ${result.group2}: Mean Diff = ${result.meanDiff}, Critical Value = ${result.criticalValue},
-     Significant = ${result.significant ? "Yes" : "No"}\n`;
-  });
-
-  // sheff call 
-  const scheffeResults = calculateScheffe(groups, MSE);
-
-  // Display Scheffé results
-  outputText += `\nScheffé's Test Results:\n`;
-  scheffeResults.forEach((result) => {
-    outputText += `Group ${result.group1} vs Group ${result.group2}: F = ${
-      result.Fscheffe
-    }, Critical Value = ${result.criticalValue}, Significant = ${
-      result.significant ? "Yes" : "No"
-    }\n`;
-  });
-
-
-
-
+  outputText +=` \n \n`
+   
 
 
   document.getElementById("output").textContent = outputText;
-  // Draw the interval chart
+  // Draw interval call
+   
   drawIntervalChart(groupMeans, lowerCI, upperCI);
+  
 }
-
 
 // Draw Bar Chart with Confidence Intervals
 function drawIntervalChart(groupMeans, lowerCI, upperCI) {
@@ -207,7 +324,6 @@ function drawIntervalChart(groupMeans, lowerCI, upperCI) {
     ],
   };
 
-  // Remove any previous chart instance
   if (window.intervalChartInstance) {
     window.intervalChartInstance.destroy();
   }
@@ -256,13 +372,11 @@ function drawIntervalChart(groupMeans, lowerCI, upperCI) {
             const yMin = y.getPixelForValue(lowerCI[index]);
             const yMax = y.getPixelForValue(upperCI[index]);
 
-            // Draw vertical error bar line
             ctx.beginPath();
             ctx.moveTo(xValue, yMin);
             ctx.lineTo(xValue, yMax);
             ctx.stroke();
 
-            // Draw top and bottom caps of the error bars
             ctx.beginPath();
             ctx.moveTo(xValue - 5, yMin);
             ctx.lineTo(xValue + 5, yMin);
