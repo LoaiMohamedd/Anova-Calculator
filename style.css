@@ -60,7 +60,7 @@ input[type="number"] {
 
 button {
   display: block;
-  padding: 10px 20px;
+  padding: 10px 10px;
   background-color: #007bff;
   color: #fff;
   border: none;
@@ -69,6 +69,8 @@ button {
   margin: auto;
   text-align: center;
   transition: all 0.3s ease;
+  width: 170PX;
+
 }
 
 button:hover {
