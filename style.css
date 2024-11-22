@@ -14,7 +14,7 @@ h1 {
   text-align: center;
   margin-bottom: 20px;
 }
-/* .em{
+.em{
  
   width: 100%;
   font-size: 110px;
@@ -25,7 +25,7 @@ h1 {
   background-position: center;
   background-size: contain;
   background-repeat: repeat-x;
-} */
+}
 #inputContainer,
 #outputContainer,
 #chartContainer {
