@@ -1,67 +1,47 @@
-// Function to calculate Satterthwaite Procedure for Confidence Interval
+// Function to calculate Satterthwaite Procedure 
 function calculateSatterthwaite() {
   const alpha = parseFloat(document.getElementById("tValueInput").value);
   if (isNaN(alpha)) {
     alert("Please provide a valid alpha value.");
     return;
   }
-
-  // Perform ANOVA to get necessary values (MSTR, MSE, df1, df2)
-  const { MSTR, MSE, df1, df2 } = calculateANOVA(); // Destructuring now works correctly
-
+  const { MSTR, MSE, df1, df2 } = calculateANOVA();
   if (!MSTR || !MSE || !df1 || !df2) {
     alert("ANOVA calculation failed. Please check your data.");
     return;
   }
 
-  // Step 1: Degrees of Freedom for the linear combination
-  const r = df1 + 1; // Number of groups (from ANOVA df1)
-  const n = (df2 + r) / r; // Average sample size per group (approximated)
+ 
+  const r = df1 + 1; 
+  const n = (df2 + r) / r; 
 
-  // Step 2: Satterthwaite Procedure Point Estimate (L-hat)
   const c1 = 1 / n;
   const c2 = -1 / n;
   const L_hat = c1 * MSTR + c2 * MSE;
 
-  // Step 3: Degrees of Freedom for the linear combination (L-hat)
-  const sm2 = (MSTR - MSE) / n;
+  
+  const sm1 = ((MSTR - MSE) / n);
+  const sm2 = sm1.toFixed(3);
   const numerator = Math.pow(sm2 * n, 2);
   const denominator1 = Math.pow(MSTR, 2) / (r - 1);
   const denominator2 = Math.pow(MSE, 2) / (r * (n - 1));
   const denominator = denominator1 + denominator2;
-  const df = Math.round(numerator / denominator);
+  const dff = Math.round(numerator / denominator);
+  const df = dff.toFixed(3)
   
-  // const ss = require("simple-statistics");
 
-  // Step 4: Confidence Interval Calculation for L-hat
   const alphachi = 1 - alpha;
-  const chi2Lower = jStat.chisquare.inv((alphachi / 2), df); // Chi-square lower bound
-  const chi2Upper = jStat.chisquare.inv(1 - (alphachi / 2), df); // Chi-square upper bound
-  // const criticalValue = ss.chiSquaredDistributionTable(alphachi / 2, df);
+  const chi2Lower = jStat.chisquare.inv((alphachi.toFixed(3) / 2), df); 
+  const chi2Upper = jStat.chisquare.inv(1 - alphachi.toFixed(3) / 2, df); 
 
-  const lowerBound = (df * sm2) / chi2Upper;
-  const upperBound = (df * sm2) / chi2Lower;
+  const lowerBound = (df * sm2) / chi2Upper.toFixed(3);
+  const upperBound = (df * sm2) / chi2Lower.toFixed(3);
 
   // Output results
-  const output = `
-Satterthwaite Procedure Results:
------------------------------
-
-${sm2}
-${n}
-${r}
-${chi2Upper}
-${chi2Lower}
-${jStat.chisquare.inv(0.95, 3)}
-${df}
-alpachi =${alphachi}
-alpachi /2 =${alphachi / 2}
-1 - (alphachi / 2) =${1 - (alphachi / 2)}
-Point Estimate for L-hat: ${L_hat.toFixed(2)}
-Degrees of Freedom: ${df.toFixed(2)}
-Confidence Interval for L-hat: [${lowerBound.toFixed(2)}, ${upperBound.toFixed(
-    4
-  )}]
+  const output = `Satterthwaite Procedure Results:
+Point Estimate for S²μ: ${L_hat.toFixed(2)}
+Degrees of Freedom: ${dff}
+Confidence Interval : ${lowerBound.toFixed(2)} ≤ σ2 ≤ ${upperBound.toFixed(4)}
     `;
   document.getElementById("output").textContent += "\n\n" + output;
 }
@@ -69,7 +49,7 @@ Confidence Interval for L-hat: [${lowerBound.toFixed(2)}, ${upperBound.toFixed(
 // ----------------------------------------------------------
 function calculateTukey() {
   calculateANOVA();
-  `\n\n\n`;
+ 
   const dataInput = document.getElementById("dataInput").value.trim();
   const groups = dataInput
     .split("\n")
@@ -328,7 +308,7 @@ function calculateANOVA() {
   outputText += `SSTO: ${(SSE + SSTR).toFixed(3)}\n`;
   outputText += `MSTR: ${MSTR.toFixed(3)}\n`;
   outputText += `MSE: ${MSE.toFixed(3)}\n`;
-  outputText += `F-Statistic: ${F.toFixed(3)}\n\n`;
+  outputText += `F-Statistic: ${F.toFixed(3)}\n`;
 
   // Calculate Confidence Intervals for each group
   const marginsOfError = [];
@@ -361,7 +341,7 @@ function calculateANOVA() {
       )}, ${upper.toFixed(3)}]\n `;
     }
   }
-  outputText += ` \n \n`;
+  outputText += ` \n `;
 
   document.getElementById("output").textContent = outputText;
   // Draw interval call
