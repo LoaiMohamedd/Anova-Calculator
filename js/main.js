@@ -1,55 +1,56 @@
-// Function to calculate Satterthwaite Procedure 
+// Function to calculate Satterthwaite Procedure
 function calculateSatterthwaite() {
   const alpha = parseFloat(document.getElementById("tValueInput").value);
   if (isNaN(alpha)) {
     alert("Please provide a valid alpha value.");
     return;
   }
-  const { MSTR, MSE, df1, df2 } = calculateANOVA();
+  let { MSTR, MSE, df1, df2, lol } = calculateANOVA();
   if (!MSTR || !MSE || !df1 || !df2) {
     alert("ANOVA calculation failed. Please check your data.");
     return;
   }
 
- 
-  const r = df1 + 1; 
-  const n = (df2 + r) / r; 
+  if (lol === 0) {
+    alert("You can not solve this matrix by this method");
+  } else {
+    const r = df1 + 1;
+    const n = (df2 + r) / r;
 
-  const c1 = 1 / n;
-  const c2 = -1 / n;
-  const L_hat = c1 * MSTR + c2 * MSE;
+    const c1 = 1 / n;
+    const c2 = -1 / n;
+    const L_hat = c1 * MSTR + c2 * MSE;
 
-  
-  const sm1 = ((MSTR - MSE) / n);
-  const sm2 = sm1.toFixed(3);
-  const numerator = Math.pow(sm2 * n, 2);
-  const denominator1 = Math.pow(MSTR, 2) / (r - 1);
-  const denominator2 = Math.pow(MSE, 2) / (r * (n - 1));
-  const denominator = denominator1 + denominator2;
-  const dff = Math.round(numerator / denominator);
-  const df = dff.toFixed(3)
-  
+    const sm1 = (MSTR - MSE) / n;
+    const sm2 = sm1.toFixed(3);
+    const numerator = Math.pow(sm2 * n, 2);
+    const denominator1 = Math.pow(MSTR, 2) / (r - 1);
+    const denominator2 = Math.pow(MSE, 2) / (r * (n - 1));
+    const denominator = denominator1 + denominator2;
+    const dff = Math.round(numerator / denominator);
+    const df = dff.toFixed(3);
 
-  const alphachi = 1 - alpha;
-  const chi2Lower = jStat.chisquare.inv((alphachi.toFixed(3) / 2), df); 
-  const chi2Upper = jStat.chisquare.inv(1 - alphachi.toFixed(3) / 2, df); 
+    const alphachi = 1 - alpha;
+    const chi2Lower = jStat.chisquare.inv(alphachi.toFixed(3) / 2, df);
+    const chi2Upper = jStat.chisquare.inv(1 - alphachi.toFixed(3) / 2, df);
 
-  const lowerBound = (df * sm2) / chi2Upper.toFixed(3);
-  const upperBound = (df * sm2) / chi2Lower.toFixed(3);
+    const lowerBound = (df * sm2) / chi2Upper.toFixed(3);
+    const upperBound = (df * sm2) / chi2Lower.toFixed(3);
 
-  // Output results
-  const output = `Satterthwaite Procedure Results:
+    // Output results
+    const output = `Satterthwaite Procedure Results:
+
 Point Estimate for S²μ: ${L_hat.toFixed(2)}
 Degrees of Freedom: ${dff}
-Confidence Interval : ${lowerBound.toFixed(2)} ≤ σ2 ≤ ${upperBound.toFixed(4)}
-    `;
-  document.getElementById("output").textContent += "\n\n" + output;
+Confidence Interval : ${lowerBound.toFixed(2)} ≤ σ² ≤ ${upperBound.toFixed(4)}`;
+    document.getElementById("output").textContent += "\n" + output;
+  }
 }
 
 // ----------------------------------------------------------
 function calculateTukey() {
   calculateANOVA();
- 
+
   const dataInput = document.getElementById("dataInput").value.trim();
   const groups = dataInput
     .split("\n")
@@ -70,12 +71,9 @@ function calculateTukey() {
   );
   const totalGroups = groups.length;
 
-  // Degrees of freedom for error term (dfW)
   const dfW = groups.flat().length - totalGroups;
 
-  // Placeholder for critical q-value based on the degrees of freedom and number of groups
-  // This value can be retrieved from statistical tables or approximated
-  const criticalQ = parseFloat(document.getElementById("qValueInput").value); // Example placeholder value for a 5% significance level
+  const criticalQ = parseFloat(document.getElementById("qValueInput").value);
 
   const results = [];
 
@@ -85,19 +83,16 @@ function calculateTukey() {
       const mean1 = groupMeans[i];
       const mean2 = groupMeans[j];
 
-      // Calculate the Tukey HSD statistic
       const HSD = Math.abs(mean1 - mean2) / Math.sqrt(MSE / n);
 
-      // Determine if the difference is significant
       const significant = HSD > criticalQ;
 
-      // Store results for display
       results.push({
-        group1: i + 1, // Group numbers starting from 1 for display
+        group1: i + 1,
         group2: j + 1,
         HSD: HSD.toFixed(4),
         criticalQ: criticalQ.toFixed(4),
-        significant: significant ? "Yes" : "No", // Display 'Yes' or 'No'
+        significant: significant ? "Yes" : "No",
       });
     }
   }
@@ -107,10 +102,10 @@ function calculateTukey() {
     4
   )}):\n\n`;
   results.forEach((result) => {
-    outputText += `Group ${result.group1} vs Group ${result.group2}: HSD = ${result.HSD}, Critical q = ${result.criticalQ}, Significant = ${result.significant}\n`;
+    outputText += `Group ${result.group1} vs Group ${result.group2}: HSD = ${result.HSD}, Critical q = ${result.criticalQ},\n Significant = ${result.significant}\n`;
   });
 
-  document.getElementById("output").textContent += outputText;
+  document.getElementById("output").textContent += "\n" + outputText;
 }
 
 // Function to calculate Bonferroni Procedure
@@ -184,24 +179,23 @@ function calculateBonferroni() {
   results.forEach((result) => {
     outputText += `Group ${result.group1} vs Group ${result.group2}: t = ${
       result.t
-    }, Critical t = ${result.criticalT}, Significant = ${
+    }, Critical t = ${result.criticalT},\n Significant = ${
       result.significant ? "Yes" : "No"
     }\n`;
   });
 
-  document.getElementById("output").textContent += outputText;
+  document.getElementById("output").textContent += "\n" + outputText;
 }
 
 //  Scheffe
-// Function to calculate Scheffe's procedure
 function calculateScheffe() {
   calculateANOVA();
   const dataInput = document.getElementById("dataInput").value.trim();
   const groups = dataInput
     .split("\n")
     .map((line) => line.split(",").map(Number));
-  const MSE = parseFloat(document.getElementById("tValueInput").value); // Assume MSE is provided
-  const alpha = 0.05; // Significance level (can be adjusted)
+  const MSE = parseFloat(document.getElementById("tValueInput").value);
+  const alpha = 0.05;
 
   if (groups.some((group) => group.some(isNaN)) || isNaN(MSE)) {
     document.getElementById("output").textContent =
@@ -246,12 +240,12 @@ function calculateScheffe() {
   results.forEach((result) => {
     outputText += `Group ${result.group1} vs Group ${result.group2}: F = ${
       result.F
-    }, Critical Value = ${result.criticalValue}, Significant = ${
+    }, Critical Value = ${result.criticalValue}, \n Significant = ${
       result.significant ? "Yes" : "No"
     }\n`;
   });
 
-  document.getElementById("output").textContent += outputText;
+  document.getElementById("output").textContent += "\n" + outputText;
 }
 
 function calculateANOVA() {
@@ -276,6 +270,15 @@ function calculateANOVA() {
 
   const groupMeans = groups.map(mean);
   const grandMean = mean(groups.flat());
+  const ay7aga = groups[0].length;
+  let koks = 1;
+  for (let i = 1; i < groups.length; i++) {
+    // Validate each row
+    if (groups[i].length !== ay7aga) {
+      koks = 0; // Mark as invalid
+      break; // Stop checking further
+    }
+  }
 
   let SSTR = 0,
     SSE = 0;
@@ -285,7 +288,6 @@ function calculateANOVA() {
       SSE += Math.pow(groups[i][j] - groupMeans[i], 2);
     }
   }
-
   const dfB = groups.length - 1;
   const totalObservations = groups.reduce(
     (sum, group) => sum + group.length,
@@ -295,10 +297,9 @@ function calculateANOVA() {
   const MSTR = SSTR / dfB;
   const MSE = SSE / dfW;
   const F = MSTR / MSE;
-
   let outputText = `Means for each group: ${groupMeans
     .map((m) => m.toFixed(3))
-    .join(", ")}\n`;
+    .join(", ")}\n`;  
   outputText += `Degrees of Freedom (dfB): ${dfB}\n`;
   outputText += `Degrees of Freedom (dfW): ${dfW}\n`;
   outputText += `Degrees of Freedom (dft): ${totalObservations - 1}\n`;
@@ -338,16 +339,16 @@ function calculateANOVA() {
       });
       outputText += `Pair ${i + 1}-${j + 1}: CI = [${lower.toFixed(
         3
-      )}, ${upper.toFixed(3)}]\n `;
+      )}, ${upper.toFixed(3)}] \n`;
     }
+    `\n`;
   }
-  outputText += ` \n `;
 
   document.getElementById("output").textContent = outputText;
-  // Draw interval call
 
+  // Draw interval call
   drawIntervalChart(groupMeans, lowerCI, upperCI);
-  return { MSTR, MSE, df1: dfB, df2: dfW };
+  return { MSTR, MSE, df1: dfB, df2: dfW, lol: koks };
 }
 
 // Draw Bar Chart with Confidence Intervals
