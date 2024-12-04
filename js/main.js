@@ -37,7 +37,6 @@ function calculateSatterthwaite() {
     const lowerBound = (df * sm2) / chi2Upper.toFixed(3);
     const upperBound = (df * sm2) / chi2Lower.toFixed(3);
 
-    // Output results
     const output = `Satterthwaite Procedure Results:
 
 Point Estimate for S²μ: ${L_hat.toFixed(2)}
@@ -57,8 +56,8 @@ function calculateTukey() {
     .map((line) => line.split(",").map(Number));
 
   const alpha = 0.05; // Significance level
-  const MSE = parseFloat(document.getElementById("tValueInput").value); // Mean Square Error (MSE)
-  const n = parseInt(document.getElementById("qValueInput").value); // Sample size of each group (assuming equal sizes)
+  const MSE = parseFloat(document.getElementById("tValueInput").value);
+  const n = parseInt(document.getElementById("qValueInput").value);
 
   if (groups.some((group) => group.some(isNaN)) || isNaN(MSE) || isNaN(n)) {
     document.getElementById("output").textContent =
@@ -116,8 +115,8 @@ function calculateBonferroni() {
   const groups = dataInput
     .split("\n")
     .map((line) => line.split(",").map(Number));
-  const alpha = 0.05; // Original significance level
-  const MSE = parseFloat(document.getElementById("tValueInput").value); // Mean Square Error (MSE)
+  const alpha = 0.05;
+  const MSE = parseFloat(document.getElementById("tValueInput").value);
 
   if (groups.some((group) => group.some(isNaN)) || isNaN(MSE)) {
     document.getElementById("output").textContent =
@@ -150,20 +149,17 @@ function calculateBonferroni() {
       // Calculate the standard error (SE)
       const SE = Math.sqrt(MSE * (1 / size1 + 1 / size2));
 
-      // Calculate the t-statistic
       const t = Math.abs(mean1 - mean2) / SE;
 
-      // Get the degrees of freedom for the error term (dfW)
       const dfW = groups.flat().length - totalGroups;
 
-      // Critical t-value based on the adjusted alpha
-      const criticalT = jStat.studentt.inv(1 - adjustedAlpha / 2, dfW); // Two-tailed test
+      const criticalT = jStat.studentt.inv(1 - adjustedAlpha / 2, dfW);
 
       // Determine if the difference is significant
       const significant = t > criticalT;
 
       results.push({
-        group1: i + 1, // Group numbers start from 1 for display
+        group1: i + 1,
         group2: j + 1,
         t: t.toFixed(4),
         criticalT: criticalT.toFixed(4),
@@ -270,13 +266,13 @@ function calculateANOVA() {
 
   const groupMeans = groups.map(mean);
   const grandMean = mean(groups.flat());
+  //Check each matrix row if they are equal in length
   const ay7aga = groups[0].length;
   let koks = 1;
   for (let i = 1; i < groups.length; i++) {
-    // Validate each row
     if (groups[i].length !== ay7aga) {
-      koks = 0; // Mark as invalid
-      break; // Stop checking further
+      koks = 0;
+      break;
     }
   }
 
@@ -293,24 +289,16 @@ function calculateANOVA() {
     (sum, group) => sum + group.length,
     0
   );
+
   const dfW = totalObservations - groups.length;
   const MSTR = SSTR / dfB;
   const MSE = SSE / dfW;
   const F = MSTR / MSE;
-  let outputText = `Means for each group: ${groupMeans
-    .map((m) => m.toFixed(3))
-    .join(", ")}\n`;  
-  outputText += `Degrees of Freedom (dfB): ${dfB}\n`;
-  outputText += `Degrees of Freedom (dfW): ${dfW}\n`;
-  outputText += `Degrees of Freedom (dft): ${totalObservations - 1}\n`;
-  outputText += `Y..: ${grandMean.toFixed(3)}\n`;
-  outputText += `SSTR: ${SSTR.toFixed(3)}\n`;
-  outputText += `SSE: ${SSE.toFixed(3)}\n`;
-  outputText += `SSTO: ${(SSE + SSTR).toFixed(3)}\n`;
-  outputText += `MSTR: ${MSTR.toFixed(3)}\n`;
-  outputText += `MSE: ${MSE.toFixed(3)}\n`;
-  outputText += `F-Statistic: ${F.toFixed(3)}\n`;
-
+  let sterror = [];
+  for (let i = 0; i < groups.length; i++) {
+    sterror.push(Math.sqrt(MSE / groups[i].length));
+  }
+  let outputText = `Means for each group: \n`;
   // Calculate Confidence Intervals for each group
   const marginsOfError = [];
   const lowerCI = [];
@@ -322,6 +310,24 @@ function calculateANOVA() {
     upperCI.push(groupMeans[i] + marginError);
     outputText += `Group ${i + 1}: Mean = ${groupMeans[i].toFixed(3)}\n`;
   }
+
+  
+
+  outputText += `\nDegrees of Freedom (dfB): ${dfB}\n`;
+  outputText += `Degrees of Freedom (dfW): ${dfW}\n`;
+  outputText += `Degrees of Freedom (dft): ${totalObservations - 1}\n \n`;
+  outputText += `Ȳ.. : ${grandMean.toFixed(3)}\n`;
+  outputText += `SSTR: ${SSTR.toFixed(3)}\n`;
+  outputText += `SSE: ${SSE.toFixed(3)}\n`;
+  outputText += `SSTO: ${(SSE + SSTR).toFixed(3)}\n`;
+  outputText += `MSTR: ${MSTR.toFixed(3)}\n`;
+  outputText += `MSE: ${MSE.toFixed(3)}\n`;
+  outputText += `F-Statistic: ${F.toFixed(3)}\n \n`;
+  outputText += `Std Error :\n`;
+  for (let i = 0; i < sterror.length; i++) {
+    outputText += `Group ${i + 1}: ${sterror[i].toFixed(3)}\n`;
+  }
+  outputText += `\n`;
 
   // Calculate pairwise confidence intervals
   outputText += `\nPairwise Confidence Intervals (q-value = ${qValue}):\n`;
